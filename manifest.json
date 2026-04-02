@@ -1,0 +1,19 @@
+{
+    "name": "FC業務マニュアル",
+    "short_name": "マニュアル",
+    "description": "Sundubu Tanakaya FC スタッフ向け業務マニュアル",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#F0F2F5",
+    "theme_color": "#06C755",
+    "orientation": "portrait-primary",
+    "lang": "ja",
+    "icons": [
+        {
+            "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛵</text></svg>",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        }
+    ]
+}

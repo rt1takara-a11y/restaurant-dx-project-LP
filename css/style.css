@@ -1,0 +1,928 @@
+/* =============================================
+   CSS設計の考え方：
+   1. CSS変数（:root）で色・サイズを一元管理
+      → 変数を1か所変えれば全体のテーマが変わる
+   2. モバイルファースト
+      → 基本はスマホ向けに書き、min-widthで段階的に拡張
+   3. Grid + Flexboxのハイブリッド
+      → 大枠のレイアウトはGrid、細部の並びはFlex
+============================================= */
+
+/* =============================================
+   1. CSS変数（デザイントークン）
+============================================= */
+:root {
+    /* カラーパレット */
+    --color-bg: #F0F2F5;
+    /* 背景色 */
+    --color-surface: #FFFFFF;
+    /* カード・パネルの背景 */
+    --color-surface-2: #F8F9FA;
+    /* 二次サーフェス */
+    --color-border: #E2E8F0;
+    /* ボーダー */
+    --color-text: #1A202C;
+    /* 本文テキスト */
+    --color-text-muted: #718096;
+    /* 薄いテキスト（補足など） */
+    --color-accent: #06C755;
+    /* メインアクセント（緑） */
+    --color-accent-dark: #04A244;
+    /* アクセントのホバー色 */
+
+    /* カテゴリカラー（サイドバーのアクセント） */
+    --color-fc: #6C63FF;
+    /* FC基本情報：紫 */
+    --color-uber: #06D6A0;
+    /* 宅配・提供：ティール */
+    --color-prep: #1B2A4A;
+    /* 仕込み手順：ネイビー */
+    --color-menu: #FF6B35;
+    /* メニュー・価格：オレンジ */
+
+    /* レイアウト寸法 */
+    --sidebar-width: 260px;
+    --header-height: 60px;
+
+    /* タイポグラフィ */
+    --font-base: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+
+    /* 影 */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.10);
+
+    /* 角丸 */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+
+    /* アニメーション速度 */
+    --transition: 0.2s ease;
+}
+
+/* =============================================
+   2. リセット・基本設定
+============================================= */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    height: 100%;
+    font-family: var(--font-base);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: 15px;
+    line-height: 1.7;
+    /* iPhoneのノッチ・ホームバー対応 */
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* =============================================
+   3. レイアウト（CSS Grid）
+   モバイル：1カラム（ヘッダー + メイン）
+   PC：ヘッダー + サイドバー + メイン の3分割
+============================================= */
+.app-layout {
+    min-height: 100dvh;
+    display: grid;
+
+    /* モバイル：ヘッダーとメインの縦2行 */
+    grid-template-rows: var(--header-height) 1fr;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+        "header"
+        "main";
+}
+
+/* PCになったらサイドバーを追加 */
+@media (min-width: 768px) {
+    .app-layout {
+        grid-template-columns: var(--sidebar-width) 1fr;
+        grid-template-areas:
+            "header header"
+            "sidebar main";
+    }
+}
+
+/* =============================================
+   4. ヘッダー
+============================================= */
+.app-header {
+    grid-area: header;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: var(--header-height);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+}
+
+/* ハンバーガーボタン（モバイルのみ表示） */
+.menu-toggle {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 22px;
+    height: 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.menu-toggle span {
+    display: block;
+    height: 2px;
+    background: var(--color-text);
+    border-radius: 2px;
+    transition: var(--transition);
+}
+
+/* PCではハンバーガーボタンを隠す */
+@media (min-width: 768px) {
+    .menu-toggle {
+        display: none;
+    }
+}
+
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.header-icon {
+    font-size: 22px;
+}
+
+.header-title h1 {
+    font-size: 16px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* 検索バー */
+.search-wrapper {
+    position: relative;
+    flex: 1;
+    max-width: 400px;
+    margin-left: auto;
+}
+
+.search-input {
+    width: 100%;
+    height: 36px;
+    padding: 0 12px 0 36px;
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    font-size: 14px;
+    font-family: var(--font-base);
+    background: var(--color-surface-2);
+    color: var(--color-text);
+    transition: var(--transition);
+
+    /* 虫眼鏡アイコンをCSSで表示 */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23718096' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 10px center;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(6, 199, 85, 0.15);
+}
+
+/* 検索結果ドロップダウン */
+.search-results {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    max-height: 320px;
+    overflow-y: auto;
+    z-index: 200;
+}
+
+.search-result-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--color-border);
+    transition: background var(--transition);
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item:hover {
+    background: var(--color-surface-2);
+}
+
+.search-result-item .result-title {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.search-result-item .result-category {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    margin-top: 2px;
+}
+
+.search-result-item mark {
+    background: #FFF3CD;
+    border-radius: 2px;
+    padding: 0 1px;
+}
+
+/* =============================================
+   5. サイドバー
+============================================= */
+.sidebar {
+    grid-area: sidebar;
+    background: var(--color-surface);
+    border-right: 1px solid var(--color-border);
+    overflow-y: auto;
+    padding: 12px 0;
+
+    /* モバイル：画面外に隠す */
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-width);
+    transform: translateX(-100%);
+    transition: transform var(--transition);
+    z-index: 90;
+}
+
+/* サイドバーが開いている状態（JSで .is-open を付与） */
+.sidebar.is-open {
+    transform: translateX(0);
+}
+
+/* PCでは固定表示 */
+@media (min-width: 768px) {
+    .sidebar {
+        position: sticky;
+        top: var(--header-height);
+        height: calc(100dvh - var(--header-height));
+        transform: none;
+    }
+}
+
+/* カテゴリのグループ */
+.sidebar-category {
+    margin-bottom: 4px;
+}
+
+/* カテゴリの見出し（クリックで展開） */
+.sidebar-cat-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    font-family: var(--font-base);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-text);
+    text-align: left;
+    transition: background var(--transition);
+}
+
+.sidebar-cat-btn:hover {
+    background: var(--color-surface-2);
+}
+
+/* アクティブなカテゴリ */
+.sidebar-cat-btn.is-active {
+    background: var(--color-surface-2);
+}
+
+.sidebar-cat-icon {
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.sidebar-cat-name {
+    flex: 1;
+}
+
+/* セクションのリスト */
+.sidebar-sections {
+    list-style: none;
+    /* 展開・折りたたみアニメーション */
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.25s ease;
+}
+
+.sidebar-sections.is-open {
+    max-height: 600px;
+}
+
+.sidebar-sec-btn {
+    display: block;
+    width: 100%;
+    padding: 8px 16px 8px 52px;
+    background: none;
+    border: none;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    font-family: var(--font-base);
+    font-size: 13px;
+    color: var(--color-text-muted);
+    text-align: left;
+    transition: all var(--transition);
+}
+
+.sidebar-sec-btn:hover {
+    background: var(--color-surface-2);
+    color: var(--color-text);
+}
+
+/* 現在表示中のセクション */
+.sidebar-sec-btn.is-active {
+    color: var(--color-accent-dark);
+    font-weight: 500;
+}
+
+/* =============================================
+   6. オーバーレイ（モバイル：サイドバーの背後の暗幕）
+============================================= */
+.overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 80;
+    backdrop-filter: blur(2px);
+}
+
+.overlay.is-active {
+    display: block;
+}
+
+/* =============================================
+   7. メインコンテンツ
+============================================= */
+.main-content {
+    grid-area: main;
+    padding: 24px 20px;
+    max-width: 800px;
+    width: 100%;
+    /* PCで中央揃えにしたい場合はここで調整 */
+}
+
+@media (min-width: 768px) {
+    .main-content {
+        padding: 32px 40px;
+    }
+}
+
+/* =============================================
+   8. ウェルカム画面
+============================================= */
+.welcome-screen {
+    padding: 8px 0;
+}
+
+.welcome-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.welcome-subtitle {
+    color: var(--color-text-muted);
+    font-size: 14px;
+    margin-bottom: 28px;
+}
+
+/* カテゴリカード一覧 */
+.category-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+}
+
+.category-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 18px 16px;
+    cursor: pointer;
+    transition: all var(--transition);
+    border-top: 4px solid var(--card-color, var(--color-accent));
+    box-shadow: var(--shadow-sm);
+}
+
+.category-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.category-card-icon {
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+.category-card-name {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.category-card-count {
+    font-size: 12px;
+    color: var(--color-text-muted);
+}
+
+/* =============================================
+   9. マニュアルセクションの本文
+============================================= */
+.section-header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--color-border);
+}
+
+.section-breadcrumb {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    margin-bottom: 6px;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.section-body h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 20px 0 10px;
+    padding-left: 10px;
+    border-left: 3px solid var(--section-color, var(--color-accent));
+}
+
+.section-body h4 {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 16px 0 8px;
+    color: var(--color-text-muted);
+}
+
+.section-body p {
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.section-body ol,
+.section-body ul {
+    padding-left: 20px;
+    margin-bottom: 12px;
+}
+
+.section-body li {
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+/* =============================================
+   10. 情報ボックス（info / tip / warning）
+============================================= */
+.info-box,
+.tip-box,
+.warning-box {
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    margin: 14px 0;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.info-box {
+    background: #EBF8FF;
+    border-left: 4px solid #3182CE;
+    color: #2C5282;
+}
+
+.tip-box {
+    background: #F0FFF4;
+    border-left: 4px solid #38A169;
+    color: #276749;
+}
+
+.warning-box {
+    background: #FFFAF0;
+    border-left: 4px solid #DD6B20;
+    color: #7B341E;
+}
+
+.info-box strong,
+.tip-box strong,
+.warning-box strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.info-box p,
+.tip-box p,
+.warning-box p {
+    margin: 0;
+}
+
+/* =============================================
+   11. テーブル
+============================================= */
+.manual-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 14px 0;
+    background: var(--color-surface);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.manual-table thead {
+    background: var(--color-surface-2);
+}
+
+.manual-table th,
+.manual-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.manual-table th {
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.manual-table tr:last-child td {
+    border-bottom: none;
+}
+
+.manual-table tr:hover td {
+    background: var(--color-surface-2);
+}
+
+/* =============================================
+   12. FAQ（折りたたみ式）
+============================================= */
+.faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 14px 0;
+}
+
+.faq-item {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.faq-question {
+    padding: 12px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.faq-question::after {
+    content: '▼';
+    font-size: 11px;
+    color: var(--color-text-muted);
+    transition: transform var(--transition);
+    flex-shrink: 0;
+}
+
+.faq-item.is-open .faq-question::after {
+    transform: rotate(180deg);
+}
+
+.faq-answer {
+    font-size: 14px;
+    padding: 0 14px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease, padding 0.25s ease;
+    color: var(--color-text-muted);
+}
+
+.faq-item.is-open .faq-answer {
+    max-height: 200px;
+    padding: 0 14px 12px;
+}
+
+/* =============================================
+   13. スクロールバーのカスタマイズ（Webkit）
+============================================= */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 3px;
+}
+
+/* =============================================
+   14. AIチャット
+============================================= */
+
+/* モデル読み込み状態インジケーター */
+.chat-status {
+    font-size: 11px;
+    text-align: center;
+    padding: 4px 12px;
+    background: rgba(6, 214, 160, 0.1);
+    color: var(--text-secondary, #888);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    transition: opacity 0.5s;
+}
+.chat-status--hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* FAB：画面下中央に配置 */
+.chat-fab {
+    position: fixed;
+    bottom: calc(24px + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    width: auto;
+    height: 48px;
+    padding: 0 24px;
+    border-radius: 24px;
+    background: var(--color-accent);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(6, 199, 85, 0.45);
+    font-size: 15px;
+    font-weight: 700;
+    font-family: var(--font-base);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 300;
+    transition: all var(--transition);
+    white-space: nowrap;
+}
+
+.chat-fab:hover {
+    background: var(--color-accent-dark);
+    transform: translateX(-50%) scale(1.04);
+}
+
+.chat-fab.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50%) scale(0.9);
+}
+
+/* チャットパネル：画面中央に表示 */
+.chat-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.97);
+    width: 520px;
+    max-width: calc(100vw - 32px);
+    height: 600px;
+    max-height: calc(100dvh - 80px);
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    z-index: 300;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.chat-panel.is-open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* パネルが開いているときの背景暗幕 */
+.chat-panel-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(2px);
+    z-index: 299;
+}
+
+.chat-panel-backdrop.is-active {
+    display: block;
+}
+
+/* パネルのヘッダー */
+.chat-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--color-accent);
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.chat-panel-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.chat-close-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+    opacity: 0.8;
+}
+
+.chat-close-btn:hover {
+    opacity: 1;
+}
+
+/* メッセージエリア */
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* メッセージの吹き出し */
+.chat-message {
+    display: flex;
+}
+
+.chat-message.user {
+    justify-content: flex-end;
+}
+
+.chat-bubble {
+    max-width: 85%;
+    padding: 10px 12px;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.6;
+    word-break: break-word;
+}
+
+.chat-message.bot .chat-bubble {
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border);
+    border-top-left-radius: 4px;
+}
+
+.chat-message.user .chat-bubble {
+    background: var(--color-accent);
+    color: #fff;
+    border-top-right-radius: 4px;
+}
+
+/* ローディングアニメーション（3点ドット） */
+.chat-loading {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 12px 14px;
+}
+
+.chat-loading span {
+    width: 6px;
+    height: 6px;
+    background: var(--color-text-muted);
+    border-radius: 50%;
+    animation: bounce 1.2s infinite;
+}
+
+.chat-loading span:nth-child(2) { animation-delay: 0.2s; }
+.chat-loading span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes bounce {
+    0%, 80%, 100% { transform: translateY(0); }
+    40%            { transform: translateY(-6px); }
+}
+
+/* 入力フォーム */
+.chat-input-area {
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px;
+    border-top: 1px solid var(--color-border);
+    flex-shrink: 0;
+}
+
+.chat-input {
+    flex: 1;
+    min-width: 0;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    font-size: 13px;
+    font-family: var(--font-base);
+    background: var(--color-surface-2);
+}
+
+.chat-input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(6, 199, 85, 0.15);
+}
+
+.chat-send-btn {
+    height: 38px;
+    padding: 0 14px;
+    background: var(--color-accent);
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background var(--transition);
+    font-family: var(--font-base);
+}
+
+.chat-send-btn:hover {
+    background: var(--color-accent-dark);
+}
+
+/* =============================================
+   15. アクセシビリティ：スクリーンリーダー専用クラス
+============================================= */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
