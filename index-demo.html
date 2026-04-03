@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8" />
+    <!-- モバイル表示の最適化。viewport-fitはiPhoneの角丸・ノッチ対応 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>FC業務マニュアル</title>
+
+    <!-- Googleフォント：読みやすい日本語フォント -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- PWA：ブラウザにアプリとして認識させるための設定ファイル -->
+    <link rel="manifest" href="./manifest.json" />
+    <!-- iOSのホーム画面追加時のテーマカラー -->
+    <meta name="theme-color" content="#06C755" />
+    <link rel="stylesheet" href="./css/style.css" />
+</head>
+
+<body>
+
+    <!-- ========================================
+         アプリ全体のラッパー
+         display:grid でヘッダー・サイドバー・メインを管理
+    ======================================== -->
+    <div class="app-layout" id="appLayout">
+
+        <!-- ヘッダー（上部固定） -->
+        <header class="app-header">
+            <!-- モバイル用：サイドバーを開くボタン -->
+            <button class="menu-toggle" id="menuToggle" aria-label="メニューを開く">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <div class="header-title">
+                <span class="header-icon">🛵</span>
+                <h1>FC業務マニュアル</h1>
+            </div>
+
+            <!-- 検索バー -->
+            <div class="search-wrapper">
+                <input
+                    type="search"
+                    id="searchInput"
+                    class="search-input"
+                    placeholder="キーワードで検索..."
+                    autocomplete="off"
+                    aria-label="マニュアル内を検索"
+                />
+                <!-- 検索結果ドロップダウン（JSで動的生成） -->
+                <div class="search-results" id="searchResults" hidden></div>
+            </div>
+        </header>
+
+        <!-- ========================================
+             サイドバー（カテゴリ・セクション一覧）
+             PC：常に表示 / モバイル：スライドイン
+        ======================================== -->
+        <aside class="sidebar" id="sidebar" aria-label="カテゴリ一覧">
+            <!-- JSでカテゴリ一覧を動的に描画する場所 -->
+            <nav id="sidebarNav"></nav>
+        </aside>
+
+        <!-- モバイル用：サイドバーの背後の暗幕 -->
+        <div class="overlay" id="overlay"></div>
+
+        <!-- ========================================
+             メインコンテンツ（右側）
+             JSで選択されたセクションの内容を表示する
+        ======================================== -->
+        <main class="main-content" id="mainContent" aria-live="polite">
+            <!-- 初期表示：ウェルカム画面（JSで描画） -->
+        </main>
+
+    </div>
+
+    <!-- データとロジックの読み込み -->
+    <!-- type="module" にすることでimport/exportが使えるようになる -->
+    <script type="module">
+        import { initApp }  from './js/app.js';
+        import { initChat } from './js/chat.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initApp();
+            initChat();
+        });
+
+        // Service Workerの登録
+        // 'serviceWorker' in navigator でブラウザが対応しているか確認してから登録
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(() => console.log('Service Worker 登録完了'))
+                .catch((err) => console.error('Service Worker 登録失敗:', err));
+        }
+    </script>
+
+</body>
+</html>
